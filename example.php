@@ -2,7 +2,6 @@
 
 require_once "Strims.class.php";
 
-header("Content-type:text/plain;charset=utf-8");
 $strims = new Strims();
 
 $entries = $strims->get_entries('u/altruista');
