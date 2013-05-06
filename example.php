@@ -11,3 +11,4 @@ if($strims->login('uzytkownik', 'haslo')) {
 	$strims->post_link('Ciekawostki', 'ciekawy link', 'http://google.pl');
 }
 
+
