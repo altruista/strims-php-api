@@ -132,11 +132,11 @@ class Strims extends API_Curl
         
         $entries = Array();
         foreach($tmp as $div) {
-			$div_user = find_one_between($div, '<div class="entry_user">', '</a>');
-			$div_info = find_one_between($div, 'entry_info', false);
+            $div_user = find_one_between($div, '<div class="entry_user">', '</a>');
+            $div_info = find_one_between($div, 'entry_info', false);
 
-        	$entry = new stdClass;        	
-        	$entry->user 	= find_one_between($div_user, '<span class="bold">', '</span>');
+            $entry = new stdClass;        	
+            $entry->user 	= find_one_between($div_user, '<span class="bold">', '</span>');
         	$entry->id 		= find_one_between($div, '<a id="', '" class="anchor"></a>');
         	$entry->html 	= find_one_between($div, 'div class="markdown">', '</div>');
         	$entry->text 	= strip_tags($entry->html);
@@ -168,12 +168,32 @@ class Strims extends API_Curl
 		return json_decode($result);
     }
 
-	/**
+    /**
+     * Dodawanie odpowiedzi do wpisu
+     * @param string $entry_id id wpisu np. 'fgsd234'
+     * @param string $content Treść wpisu (odpowiedzi)
+     * @return object odpowiedź ajax ze strimsa
+     */
+    public function post_entry_answer($entry_id, $content) {
+        if(!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $entry_postdata = Array(
+            'token'             => $this->_token,
+            '_external[parent]' => $entry_id,
+            'text'              => $content            
+        );
+        $result = $this->post('ajax/wpisy/dodaj', $entry_postdata);
+        return json_decode($result);
+    }
+
+    /**
      * Dodawanie treści (link)
      * @param string $strim dokad wpis np. "Ciekawostki"
      * @param string $title tytuł
      * @param string $url url odnośnika
      * @param bool $thumb miniaturka true/false     
+     * @return bool|string id tresci lub falsz w przypadku niepowodzenia
      */
     public function post_link($strim, $title, $url, $thumb = true)
     {
@@ -181,17 +201,20 @@ class Strims extends API_Curl
     		throw new Exception("Musisz byc zalogowany!");
     	}
     	$link_postdata = Array(
-    		'token'				=> $this->_token,    		
-			'kind'				=> 'link',
-			'title'				=> $title,
-			'url'				=> $url,
-			'text'				=> '',
-			'_external[strim]'	=> $strim,
-			'media'				=> $thumb ? 1 : 0
+            'token'				=> $this->_token,    		
+            'kind'				=> 'link',
+            'title'				=> $title,
+            'url'				=> $url,
+            'text'				=> '',
+            '_external[strim]'	=> $strim,
+            'media'				=> $thumb ? 1 : 0
 		);
-		$this->post('s/'.$strim.'/dodaj', $link_postdata);		
+		$result = $this->post('s/'.$strim.'/dodaj', $link_postdata);		
+        $tmp = find_one_between($this->html, 'content level_0', '</a>');
+        if(!$tmp) return false;
+        $id = find_one_between($tmp, 'id="', '"');
+        if(!$id) return false;
+        return $id;
     }    
-
-
     
 }
