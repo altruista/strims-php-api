@@ -29,12 +29,11 @@ class API_Curl
     private $_ch = false;
     protected $_config = Array('cookie_file' => 'cookie.txt', 'user_agent' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1');
     public $html;
-    
-    public function __construct()
-    {
-        if (!is_writeable($this->_config['cookie_file'])) {
-            throw new Exception("Plik {$this->_config['cookie_file']} nie ma uprawnien do zapisu!");
-        }
+
+    public function __construct() {    	    	
+    	if(!is_writeable($this->_config['cookie_file'])) {
+    		throw new Exception("Plik {$this->_config['cookie_file']} nie ma uprawnien do zapisu!");
+    	}
     }
     
     private function _curl_init()
@@ -80,7 +79,7 @@ class Strims extends API_Curl
     private $_strims_domain = 'http://strims.pl/';
     private $_token;
     private $_logged_in;
-    
+
     public function get($url)
     {
         return parent::get($this->_strims_domain . $url);
@@ -104,7 +103,7 @@ class Strims extends API_Curl
      */
     public function login($username, $password)
     {
-        $token          = $this->get_token();
+    	$token = $this->get_token();
         $login_postdata = Array(
             'token' => $token,
             '_external[remember]' => 1,
@@ -113,13 +112,13 @@ class Strims extends API_Curl
         );
         $this->post('zaloguj', $login_postdata);
         $result = stripos($this->html, 'wyloguj') !== false;
-        if ($result) {
-            $this->_logged_in = true;
-            $this->_token     = $token;
+        if($result) {
+        	$this->_logged_in = true;
+        	$this->_token = $token;
         }
         return $result;
     }
-    
+
     /**
      * Pobieranie wpisów
      * @param bool|string $strim skad wpisy np. "s/Ciekawostki", "u/Uzytkownik" lub false jeśli główne wpisy
@@ -132,22 +131,22 @@ class Strims extends API_Curl
         $tmp = find_between($this->html, 'entry   level_0', '</ul');
         
         $entries = Array();
-        foreach ($tmp as $div) {
-            $div_user = find_one_between($div, '<div class="entry_user">', '</a>');
-            $div_info = find_one_between($div, 'entry_info', false);
-            
-            $entry        = new stdClass;
-            $entry->user  = find_one_between($div_user, '<span class="bold">', '</span>');
-            $entry->id    = find_one_between($div, '<a id="', '" class="anchor"></a>');
-            $entry->html  = find_one_between($div, 'div class="markdown">', '</div>');
-            $entry->text  = strip_tags($entry->html);
-            $entry->strim = find_one_between($div_info, 'href="/s/', '/');
-            
-            $entries[] = $entry;
+        foreach($tmp as $div) {
+			$div_user = find_one_between($div, '<div class="entry_user">', '</a>');
+			$div_info = find_one_between($div, 'entry_info', false);
+
+        	$entry = new stdClass;        	
+        	$entry->user 	= find_one_between($div_user, '<span class="bold">', '</span>');
+        	$entry->id 		= find_one_between($div, '<a id="', '" class="anchor"></a>');
+        	$entry->html 	= find_one_between($div, 'div class="markdown">', '</div>');
+        	$entry->text 	= strip_tags($entry->html);
+        	$entry->strim 	= find_one_between($div_info, 'href="/s/', '/');
+        	
+        	$entries[] = $entry;
         }
         return $entries;
     }
-    
+
     /**
      * Dodawanie wpisu
      * @param bool|string $strim dokad wpis np. "Ciekawostki" lub false jeśli do głównego 
@@ -156,43 +155,43 @@ class Strims extends API_Curl
      */
     public function post_entry($strim = false, $content)
     {
-        if (!$this->_logged_in) {
-            throw new Exception("Musisz byc zalogowany!");
-        }
-        $entry_postdata = Array(
-            'token' => $this->_token,
-            '_external[parent]' => '',
-            'text' => $content,
-            '_external[strim]' => $strim
-        );
-        $result         = $this->post('ajax/wpisy/dodaj', $entry_postdata);
-        return json_decode($result);
+    	if(!$this->_logged_in) {
+    		throw new Exception("Musisz byc zalogowany!");
+    	}
+    	$entry_postdata = Array(
+    		'token'				=> $this->_token,
+    		'_external[parent]'	=> '',
+    		'text'				=> $content,
+    		'_external[strim]'	=> $strim
+		);
+		$result = $this->post('ajax/wpisy/dodaj', $entry_postdata);
+		return json_decode($result);
     }
-    
-    /**
+
+	/**
      * Dodawanie treści (link)
-     * @param string $strim dokad wpis np. "Ciekawostki" lub false jeśli do głównego 
+     * @param string $strim dokad wpis np. "Ciekawostki"
      * @param string $title tytuł
      * @param string $url url odnośnika
      * @param bool $thumb miniaturka true/false     
      */
     public function post_link($strim, $title, $url, $thumb = true)
     {
-        if (!$this->_logged_in) {
-            throw new Exception("Musisz byc zalogowany!");
-        }
-        $link_postdata = Array(
-            'token' => $this->_token,
-            'kind' => 'link',
-            'title' => $title,
-            'url' => $url,
-            'text' => '',
-            '_external[strim]' => $strim,
-            'media' => $thumb ? 1 : 0
-        );
-        $this->post('s/' . $strim . '/dodaj', $link_postdata);
-    }
-    
-    
+    	if(!$this->_logged_in) {
+    		throw new Exception("Musisz byc zalogowany!");
+    	}
+    	$link_postdata = Array(
+    		'token'				=> $this->_token,    		
+			'kind'				=> 'link',
+			'title'				=> $title,
+			'url'				=> $url,
+			'text'				=> '',
+			'_external[strim]'	=> $strim,
+			'media'				=> $thumb ? 1 : 0
+		);
+		$this->post('s/'.$strim.'/dodaj', $link_postdata);		
+    }    
+
+
     
 }
