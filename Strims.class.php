@@ -1,19 +1,15 @@
 <?php
 
-
-
-
-function find_between($str, $a, $b = false)
-{
-    $tmp = explode($a, $str);
+function find_between($str, $from, $to = false) {
+    $tmp = explode($from, $str);
     unset($tmp[0]);
     $result = Array();
     foreach ($tmp as $chunk) {
-        if ($b === false && $chunk) {
+        if ($to === false && $chunk) {
             $result[] = $chunk;
             continue;
         }
-        list($add) = explode($b, $chunk);
+        list($add) = explode($to, $chunk);
         if ($add) {
             $result[] = $add;
         }
@@ -21,28 +17,25 @@ function find_between($str, $a, $b = false)
     return $result;
 }
 
-function find_one_between($str, $a, $b = false)
-{
-    $result = find_between($str, $a, $b);
+function find_one_between($str, $from, $to = false) {
+    $result = find_between($str, $from, $to);
     return isset($result[0]) ? $result[0] : false;
 }
 
-class API_Curl
-{
+class API_Curl {
+
     private $_ch = false;
     protected $_config = Array('cookie_file' => 'cookie.txt', 'user_agent' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1');
     public $html;
     public $last_url = "";
-    
-    public function __construct()
-    {
+
+    public function __construct() {
         if (!is_writeable($this->_config['cookie_file'])) {
             throw new Exception("Plik {$this->_config['cookie_file']} nie ma uprawnien do zapisu!");
         }
     }
-    
-    private function _curl_init()
-    {
+
+    private function _curl_init() {
         if ($this->_ch) {
             curl_close($this->_ch);
         }
@@ -51,17 +44,15 @@ class API_Curl
         curl_setopt($this->_ch, CURLOPT_COOKIEJAR, $this->_config['cookie_file']);
         curl_setopt($this->_ch, CURLOPT_RETURNTRANSFER, 1);
         //curl_setopt($this->_ch, CURLOPT_FOLLOWLOCATION, 1); nie działa w safe_mode...
-        
-        
         curl_setopt($this->_ch, CURLOPT_USERAGENT, $this->_config['user_agent']);
     }
-    private function _curl_close()
-    {
+
+    private function _curl_close() {
         curl_close($this->_ch);
         $this->_ch = false;
     }
-    public function get($url)
-    {
+
+    public function get($url) {
         $this->_curl_init();
         $this->last_url = $url;
         curl_setopt($this->_ch, CURLOPT_URL, $url);
@@ -69,8 +60,8 @@ class API_Curl
         $this->_curl_close();
         return $this->html;
     }
-    public function post($url, $data, $no_redirect = false)
-    {
+
+    public function post($url, $data, $no_redirect = false) {
         $this->_curl_init();
         $this->last_url = $url;
         curl_setopt($this->_ch, CURLOPT_URL, $url);
@@ -84,12 +75,11 @@ class API_Curl
         $this->_curl_close();
         return $this->html;
     }
-    
+
     /**
      * Chamska funkcja bo CURLOPT_FOLLOWLOCATION nie działa w safe_mode :/           *
      */
-    private function _curl_exec($ch, &$maxredirect = null)
-    {
+    private function _curl_exec($ch, &$maxredirect = null) {
         $mr = $maxredirect === null ? 10 : intval($maxredirect);
         if (ini_get('open_basedir') == '' && ini_get('safe_mode' == 'Off')) {
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, $mr > 0);
@@ -98,7 +88,7 @@ class API_Curl
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
             if ($mr > 0) {
                 $newurl = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
-                
+
                 $rch = curl_copy_handle($ch);
                 curl_setopt($rch, CURLOPT_HEADER, true);
                 curl_setopt($rch, CURLOPT_NOBODY, false);
@@ -109,7 +99,7 @@ class API_Curl
                 do {
                     curl_setopt($rch, CURLOPT_URL, $newurl);
                     $header = curl_exec($rch);
-                    
+
                     if (curl_errno($rch)) {
                         $code = 0;
                     } else {
@@ -138,38 +128,36 @@ class API_Curl
         }
         return curl_exec($ch);
     }
+
 }
 
-class Strims extends API_Curl
-{
+class Strims extends API_Curl {
+
     private $_strims_domain = 'http://strims.pl/';
     private $_token;
     private $_logged_in;
-    
-    public function get($url)
-    {
+
+    public function get($url) {
         return parent::get($this->_strims_domain . $url);
     }
-    public function post($url, $data, $no_redirect = false)
-    {
+
+    public function post($url, $data, $no_redirect = false) {
         return parent::post($this->_strims_domain . $url, $data, $no_redirect);
     }
-    
-    public function get_token()
-    {
+
+    public function get_token() {
         $this->get('zaloguj');
         return find_one_between($this->html, "page_template.token = '", "'");
     }
-    
+
     /**
      * Logowanie do strims.pl
      * @param string $username Nazwa użytkownika
      * @param string $password Hasło uzytkownika
      * @return bool true jeśli udało się zalogować
      */
-    public function login($username, $password)
-    {
-        $token          = $this->get_token();
+    public function login($username, $password) {
+        $token = $this->get_token();
         $login_postdata = Array(
             'token' => $token,
             '_external[remember]' => 1,
@@ -180,68 +168,65 @@ class Strims extends API_Curl
         $result = stripos($this->html, 'wyloguj') !== false;
         if ($result) {
             $this->_logged_in = true;
-            $this->_token     = $token;
+            $this->_token = $token;
         }
         return $result;
     }
-    
+
     /**
      * Pobieranie wpisów
      * @param bool|string $strim skad wpisy np. "s/Ciekawostki", "u/Uzytkownik" lub false jeśli główne wpisy
      * @param int $page numer strony zaczynajać od 1
      * @return array Tablica z wynikami
      */
-    public function get_entries($strim = false, $page = 1)
-    {
+    public function get_entries($strim = false, $page = 1) {
         $this->get($strim . '/wpisy' . ($page == 1 ? "" : "?strona={$page}"));
         $tmp = find_between($this->html, 'entry   level_0', '</ul');
-        
+
         $entries = Array();
         foreach ($tmp as $div) {
             $div_user = find_one_between($div, '<div class="entry_user">', '</a>');
             $div_info = find_one_between($div, 'entry_info', false);
-            
-            $entry        = new stdClass;
-            $entry->user  = find_one_between($div_user, '<span class="bold">', '</span>');
-            $entry->id    = find_one_between($div, '<a id="', '" class="anchor"></a>');
-            $entry->html  = find_one_between($div, 'div class="markdown">', '</div>');
-            $entry->text  = strip_tags($entry->html);
+
+            $entry = new stdClass;
+            $entry->user = find_one_between($div_user, '<span class="bold">', '</span>');
+            $entry->id = find_one_between($div, '<a id="', '" class="anchor"></a>');
+            $entry->html = find_one_between($div, 'div class="markdown">', '</div>');
+            $entry->text = strip_tags($entry->html);
             $entry->strim = find_one_between($div_info, 'href="/s/', '/');
-            
+
             $entries[] = $entry;
         }
         return $entries;
     }
-    
+
     /**
      * Dodawanie wpisu
      * @param bool|string $strim dokad wpis np. "Ciekawostki" lub false jeśli do głównego 
      * @param string $content Treść wpisu
      * @return object odpowiedź ajax ze strimsa
      */
-    public function post_entry($strim = false, $content)
-    {
+    public function post_entry($strim = false, $content) {
         if (!$this->_logged_in) {
             throw new Exception("Musisz byc zalogowany!");
         }
         $entry_postdata = Array(
-            'token' => $this->_token,
+            'token'=> $this->_token,
             '_external[parent]' => '',
             'text' => $content,
             '_external[strim]' => $strim
         );
-        $result         = $this->post('ajax/wpisy/dodaj', $entry_postdata, true);
+        $result = $this->post('ajax/wpisy/dodaj', $entry_postdata, true);
         return json_decode($result);
     }
-    
+
     /**
      * Dodawanie odpowiedzi do wpisu
      * @param string $entry_id id wpisu np. 'fgsd234'
      * @param string $content Treść wpisu (odpowiedzi)
      * @return object odpowiedź ajax ze strimsa
      */
-    public function post_entry_answer($entry_id, $content)
-    {
+    public function post_entry_answer($entry_id, $content) {
         if (!$this->_logged_in) {
             throw new Exception("Musisz byc zalogowany!");
         }
@@ -250,10 +235,10 @@ class Strims extends API_Curl
             '_external[parent]' => $entry_id,
             'text' => $content
         );
-        $result         = $this->post('ajax/wpisy/dodaj', $entry_postdata, true);
+        $result = $this->post('ajax/wpisy/dodaj', $entry_postdata, true);
         return json_decode($result);
     }
-    
+
     /**
      * Dodawanie treści (link)
      * @param string $strim dokad wpis np. "Ciekawostki"
@@ -262,8 +247,7 @@ class Strims extends API_Curl
      * @param bool $thumb miniaturka true/false     
      * @return bool|string id tresci lub falsz w przypadku niepowodzenia
      */
-    public function post_link($strim, $title, $url, $thumb = true)
-    {
+    public function post_link($strim, $title, $url, $thumb = true) {
         if (!$this->_logged_in) {
             throw new Exception("Musisz byc zalogowany!");
         }
@@ -276,15 +260,17 @@ class Strims extends API_Curl
             '_external[strim]' => $strim,
             'media' => $thumb ? 1 : 0
         );
-        $result        = $this->post('s/' . $strim . '/dodaj', $link_postdata);
-        $tmp           = find_one_between($this->html, 'content level_0', '</a>');
-        
-        if (!$tmp)
+        $result = $this->post('s/' . $strim . '/dodaj', $link_postdata);
+        $tmp = find_one_between($this->html, 'content level_0', '</a>');
+
+        if (!$tmp) {
             return false;
+        }
         $id = find_one_between($tmp, 'id="', '"');
-        if (!$id)
+        if (!$id) {
             return false;
+        }
         return $id;
     }
-    
+
 }
