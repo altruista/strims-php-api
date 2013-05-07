@@ -25,7 +25,10 @@ function find_one_between($str, $from, $to = false) {
 class API_Curl {
 
     private $_ch = false;
-    protected $_config = Array('cookie_file' => 'cookie.txt', 'user_agent' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1');
+    protected $_config = Array(
+        'cookie_file' => 'cookie.txt', 
+        'user_agent' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1'
+    );
     public $html;
     public $last_url = "";
 
