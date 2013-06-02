@@ -331,7 +331,7 @@ class Strims extends API_Curl
     }
 
     /**
-     * UV wpisu np. '9mv3db'
+     * DV wpisu np. '9mv3db'
      * @param string $entry_id id wpisu
      * @return object odpowiedź ze strimsa
      */
@@ -351,7 +351,7 @@ class Strims extends API_Curl
     }
 
     /**
-     * UV treści np. '9mv3db'
+     * DV treści np. '9mv3db'
      * @param string $link_id id wpisu
      * @return object odpowiedź ze strimsa
      */
