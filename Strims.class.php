@@ -25,14 +25,14 @@ function find_one_between($str, $from, $to = false)
 }
 
 class API_Curl
-{
-    private $_ch = false;
-    protected $_config = Array(
+{    
+    public      $html;
+    public      $last_url = "";
+    private     $_ch      = false;
+    protected   $_config  = Array(
         'cookie_file' => 'cookie.txt',
         'user_agent' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1'
     );
-    public $html;
-    public $last_url = "";
     
     public function __construct()
     {
@@ -292,4 +292,17 @@ class Strims extends API_Curl
         return $id;
     }
     
+    /**
+     * Polubienie wpisu np. '9mv3db'
+     * @param string $entry_id id wpisu
+     * @return object odpowiedź ze strimsa
+     */
+    public function like_entry($entry_id)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $result = $this->get('ajax/w/'.$entry_id.'/lubie?token='.$this->_token);
+        return json_decode($result);
+    }
 }
