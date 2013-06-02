@@ -291,18 +291,72 @@ class Strims extends API_Curl
         }
         return $id;
     }
+
+    /**
+     * UV wpisu/treści np. 'w/9mv3db' lub 't/523fag'
+     * @param string $content id wpisu
+     * @return object odpowiedź ze strimsa
+     */
+    public function like($content)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $result = $this->get('ajax/'.$content.'/lubie?token='.$this->_token);
+        return json_decode($result);
+    }
+
+    /**
+     * DV wpisu/treści np. 'w/9mv3db' lub 't/523fag'
+     * @param string $content id wpisu
+     * @return object odpowiedź ze strimsa
+     */
+    public function dislike($content)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $result = $this->get('ajax/'.$content.'/nielubie?token='.$this->_token);
+        return json_decode($result);
+    }
     
     /**
-     * Polubienie wpisu np. '9mv3db'
+     * UV wpisu np. '9mv3db'
      * @param string $entry_id id wpisu
      * @return object odpowiedź ze strimsa
      */
     public function like_entry($entry_id)
     {
-        if (!$this->_logged_in) {
-            throw new Exception("Musisz byc zalogowany!");
-        }
-        $result = $this->get('ajax/w/'.$entry_id.'/lubie?token='.$this->_token);
-        return json_decode($result);
+        return $this->like("w/{$entry_id}");
     }
+
+    /**
+     * UV wpisu np. '9mv3db'
+     * @param string $entry_id id wpisu
+     * @return object odpowiedź ze strimsa
+     */
+    public function dislike_entry($entry_id)
+    {
+        return $this->dislike("t/{$entry_id}");
+    }
+
+    /**
+     * UV treści np. '9mv3db'
+     * @param string $link_id id wpisu
+     * @return object odpowiedź ze strimsa
+     */
+    public function like_link($link_id)
+    {
+        return $this->like("t/{$link_id}");
+    }
+
+    /**
+     * UV treści np. '9mv3db'
+     * @param string $link_id id wpisu
+     * @return object odpowiedź ze strimsa
+     */
+    public function dislike_link($link_id)
+    {
+        return $this->dislike("t/{$link_id}");
+    }    
 }
