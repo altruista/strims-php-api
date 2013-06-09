@@ -262,7 +262,7 @@ class Strims extends API_Curl
      * @param string $content Treść wpisu
      * @return object odpowiedź ajax ze strimsa
      */
-    public function post_entry($strim = false, $content)
+    public function post_entry($strim, $content)
     {
         if (!$this->_logged_in) {
             throw new Exception("Musisz byc zalogowany!");
