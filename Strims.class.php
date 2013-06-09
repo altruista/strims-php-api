@@ -143,18 +143,52 @@ class API_Curl
 
 class Strims extends API_Curl
 {
+    /**
+     * @var string domena strims
+     */
     private $_strims_domain = 'http://strims.pl/';
+    
+    /**
+     * @var string token sesji. patrz get_token()
+     */    
     private $_token;
+    
+    /**
+     * @var bool prawda jeśli jesteśmy zalogowani
+     */
     private $_logged_in;
     
+    /**
+     * Bazowa metoda wysyłająca zapytanie GET do serwera
+     * @param string $url lokacja np. u/altruista
+     * @return string html
+     */
     public function get($url)
     {
         return parent::get($this->_strims_domain . $url);
     }
     
+    /**
+     * Bazowa metoda wysyłająca zapytanie POST do serwera
+     * @param string $url lokacja np. u/altruista
+     * @return string html
+     */    
     public function post($url, $data, $no_redirect = false)
     {
         return parent::post($this->_strims_domain . $url, $data, $no_redirect);
+    }
+    
+    /**
+     * Zamienia krótką lokację (url) na pełny url (seo-friendly)
+     * @param string $short_location krótka lokacja na strimsie np. t/abc123, 
+     * @return string pełna lokacja na strimsie np. s/nazwa_strimu/t/abc123/tytul-tresci
+     */
+    public function get_full_location($short_location)
+    {
+        $this->get($short_location);
+        // wycinamy początkowe "http://strims.pl/"
+        list($nil, $result) = explode('://strims.pl/', $this->last_url, 2);
+        return $result;
     }
     
     /**
@@ -296,6 +330,35 @@ class Strims extends API_Curl
             return false;
         }
         return $id;
+    }
+    
+    /**
+     * Dodaje link do powiązanych
+     * @param string $link_id id linku np. 'ffa523'
+     * @param string $title tytuł
+     * @param string $url url linku
+     * @param bool $thumb miniaturka 
+     */
+    public function add_related_link($link_id, $title, $url, $thumb = true)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }        
+        $related_postdata = Array(
+            'token' => $this->_token,
+            'title' => $title,
+            'url'   => $url,
+            'media' => $thumb ? 1 : 0
+        );
+        
+        // aby dodać powiązany link trzeba znać pełen URL treści
+        // np. s/nazwa_strimu/t/523fsd/tytul-tej-tresci
+        $full_location = $this->get_full_location("t/{$link_id}");
+        
+        // tworzymy lokacje do wysłania POST aby dodać powiązany link
+        $add_related_link_location = str_replace("t/{$link_id}/", "t/{$link_id}/powiazana/", $full_location);
+        
+        $this->post($add_related_link_location, $related_postdata);        
     }
 
     /**
