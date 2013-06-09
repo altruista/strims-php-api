@@ -157,6 +157,12 @@ class Strims extends API_Curl
         return parent::post($this->_strims_domain . $url, $data, $no_redirect);
     }
     
+    /**
+     * Pobiera token sesji. Token jest używany do tego,
+     * aby nikt nie mógł spreprarować linka do UV/DV itd.
+     * Wykop swego czasu miał ten problem - "samowykopujace sie znelzisko"
+     * @return string
+     */
     public function get_token()
     {
         $this->get('zaloguj');
