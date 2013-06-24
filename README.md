@@ -8,6 +8,8 @@
 - dodawanie wpisów
 - głosowanie (wpisy / treści)
 - zamianę krótkich linków na pelne
+- ustawianie etykiet
+- pobieranie SEO tytułów z URL
 
 #### Linki:
 Dyskusja: http://strims.pl/s/PHP/t/6ftyhc/strims-php-api-via-curl
