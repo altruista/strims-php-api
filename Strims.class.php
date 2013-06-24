@@ -197,8 +197,8 @@ class Strims extends API_Curl
      * @return string zwraca tytul np. max-kolonko-polityczne-grzechy-obamy
     */
     public function get_title( $short_link ){
-        $full_link = $this->get_full_location( $short_link );
-    	return str_replace( $short_link, '', $full_link );
+        $full_link = $this->get_full_location($short_link);
+    	return str_replace($short_link, '', $full_link);
     }
     
     /**
@@ -359,7 +359,7 @@ class Strims extends API_Curl
             'token'             => $this->_token,
             'kind'              => 'text',
             'title'             => $title,
-            'link'	        	=> '',
+            'link'	        => '',
             'text'              => $content,
             '_external[strim]'  => $strim,
             'media'             => $thumb ? 1 : 0
@@ -386,12 +386,12 @@ class Strims extends API_Curl
      */
     public function add_label($strim, $link_id, $label_id ){
         if (!$this->_logged_in) {
-                throw new Exception("Musisz byc zalogowany!");
-            }
+            throw new Exception("Musisz byc zalogowany!");
+        }
          
     	$label_postdata = array(
-    		'token'             => $this->_token,
-    		'strim_flair_id'    => $label_id
+            'token'             => $this->_token,
+            'strim_flair_id'    => $label_id
     	);
     	
     	$title = $this->get_title( 's/' . $strim . '/t/' . $link_id );
@@ -399,13 +399,15 @@ class Strims extends API_Curl
     	$this->post( 's/' . $strim . '/t/' . $link_id . '/etykieta' . $title, $label_postdata );
     	$tmp = find_one_between($this->html, 'content level_0', '">');
     	
-    	if( !$tmp )
-    		return false;
+    	if (!$tmp) {
+            return false;
+        }
     	
     	$label = str_replace('flair_', '', find_one_between( $tmp, 'flair ', ' clear' ));
     	
-    	if( !$label )
-    		return false;
+    	if (!$label) {
+            return false;
+        }
     	
     	return $label;
     }
