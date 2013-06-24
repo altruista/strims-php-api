@@ -192,6 +192,16 @@ class Strims extends API_Curl
     }
     
     /**
+     * Pobiera tytul tresci z linku  krotkiego
+     * @param string $short_link krotka lokacja w strimsie, np. s/MariuszMaxKolonko/t/bslykt/
+     * @return string zwraca tytul np. max-kolonko-polityczne-grzechy-obamy
+    */
+    public function get_title( $short_link ){
+        $full_link = $this->get_full_location( $short_link );
+    	return str_replace( $short_link, '', $full_link );
+    }
+    
+    /**
      * Pobiera token sesji. Token jest używany do tego,
      * aby nikt nie mógł spreprarować linka do UV/DV itd.
      * Wykop swego czasu miał ten problem - "samowykopujace sie znelzisko"
@@ -330,6 +340,74 @@ class Strims extends API_Curl
             return false;
         }
         return $id;
+    }
+    
+     /**
+      * Dodawanie treści (text)
+      * @param string $strim dokad wpis np. "Ciekawostki"
+      * @param string $title tytuł
+      * @param string $content zawartosc wpisu
+      * @param bool $thumb miniaturka true/false     
+      * @return bool|string id tresci lub falsz w przypadku niepowodzenia
+      */
+    public function post_text($strim, $title, $content, $thumb = true)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $link_postdata = Array(
+            'token'             => $this->_token,
+            'kind'              => 'text',
+            'title'             => $title,
+            'link'	        	=> '',
+            'text'              => $content,
+            '_external[strim]'  => $strim,
+            'media'             => $thumb ? 1 : 0
+        );
+        $this->post('s/' . $strim . '/dodaj', $link_postdata);
+        $tmp = find_one_between($this->html, 'content level_0', '</a>');
+        
+        if (!$tmp) {
+            return false;
+        }
+        $id = find_one_between($tmp, 'id="', '"');
+        if (!$id) {
+            return false;
+        }
+        return $id;
+    }
+    
+     /**
+     * Dodaje etykiete do tresci
+     * @param string $strim dokad etykieta np. "Ciekawostki"
+     * @param string $link_id id linku np. 'bslykt'
+     * @param int $label_id id etykiety np. 544
+     * @return string|bool klasa etykiety lub falsz w przypadku niepowodzenia
+     */
+    public function add_label($strim, $link_id, $label_id ){
+        if (!$this->_logged_in) {
+                throw new Exception("Musisz byc zalogowany!");
+            }
+         
+    	$label_postdata = array(
+    		'token'             => $this->_token,
+    		'strim_flair_id'    => $label_id
+    	);
+    	
+    	$title = $this->get_title( 's/' . $strim . '/t/' . $link_id );
+    
+    	$this->post( 's/' . $strim . '/t/' . $link_id . '/etykieta' . $title, $label_postdata );
+    	$tmp = find_one_between($this->html, 'content level_0', '">');
+    	
+    	if( !$tmp )
+    		return false;
+    	
+    	$label = str_replace('flair_', '', find_one_between( $tmp, 'flair ', ' clear' ));
+    	
+    	if( !$label )
+    		return false;
+    	
+    	return $label;
     }
     
     /**
