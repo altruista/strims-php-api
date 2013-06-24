@@ -394,10 +394,10 @@ class Strims extends API_Curl
             'strim_flair_id'    => $label_id
     	);
     	
-    	$title = $this->get_title( 's/' . $strim . '/t/' . $link_id );
+    	$title = $this->get_title('s/' . $strim . '/t/' . $link_id);
     
-    	$this->post( 's/' . $strim . '/t/' . $link_id . '/etykieta' . $title, $label_postdata );
-    	$tmp = find_one_between($this->html, 'content level_0', '">');
+    	$this->post('s/' . $strim . '/t/' . $link_id . '/etykieta' . $title, $label_postdata);
+        $tmp = find_one_between($this->html, 'content level_0', '">');
     	
     	if (!$tmp) {
             return false;
