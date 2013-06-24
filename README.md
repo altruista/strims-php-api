@@ -16,6 +16,10 @@ Dyskusja: http://strims.pl/s/PHP/t/6ftyhc/strims-php-api-via-curl
 
 Strim PHP: http://strims.pl/s/PHP
 
+#### Autorzy:
+- http://strims.pl/u/altruista
+- http://strims.pl/u/simivar
+
 #### Licencja:
 Creative Commons Attribution 3.0
 http://creativecommons.org/licenses/by/3.0/deed.en_US
