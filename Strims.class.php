@@ -384,7 +384,8 @@ class Strims extends API_Curl
      * @param int $label_id id etykiety np. 544
      * @return string|bool klasa etykiety lub falsz w przypadku niepowodzenia
      */
-    public function add_label($strim, $link_id, $label_id ){
+    public function add_label($strim, $link_id, $label_id)
+    {
         if (!$this->_logged_in) {
             throw new Exception("Musisz byc zalogowany!");
         }
