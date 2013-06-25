@@ -8,6 +8,7 @@
 - dodawanie wpisów
 - głosowanie (wpisy / treści)
 - zamianę krótkich linków na pelne
+- dodawianie etykiet
 - ustawianie etykiet
 - pobieranie SEO tytułów z URL
 
