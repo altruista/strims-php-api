@@ -419,32 +419,33 @@ class Strims extends API_Curl
      * @param string $css_class klasa css etykiety
      * @return string|bool ID etykiety lub falsz w przypadku niepowodzenia
      */
-    public function create_label( $strim, $name, $css_class ){
+    public function create_label($strim, $name, $css_class = '')
+    {
         if (!$this->_logged_in) {
             throw new Exception("Musisz byc zalogowany!");
         }
          
-        $label_postdata = array(
-            'token'         => $this->_token,
-        	'name'          => $name,
-			'class'         => $css_class,
-			'action'         => 'add'
-    	);
+        $label_postdata = Array(
+            'token'     => $this->_token,
+            'name'      => $name,
+            'class'     => $css_class,
+            'action'    => 'add'
+        );
     
-    	$this->post('s/' . $strim . '/etykiety', $label_postdata );
+    	$this->post('s/' . $strim . '/etykiety', $label_postdata);
         $tmp = find_one_between($this->html, $css_class, '</tr');
-    	
-    	if (!$tmp) {
+
+        if (!$tmp) {
             return false;
         }
     	
-        $label = find_one_between($tmp, 'a href="/s/'.$strim.'/etykieta?id=', '"');
-        
-        if(!$label){
-    		return false;
-		}
-        
-    	return $label;
+        $label_id = find_one_between($tmp, 'a href="/s/' . $strim . '/etykieta?id=', '"');
+
+        if (!$label_id) {
+            return false;
+        }
+
+        return $label_id;
     }
     
     /**
