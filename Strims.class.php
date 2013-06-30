@@ -1,5 +1,8 @@
 <?php
 
+ /**
+ * @author Altruista <http://strims.pl/u/altruista>
+ */    
 function find_between($str, $from, $to = false)
 {
     $tmp = explode($from, $str);
@@ -18,12 +21,19 @@ function find_between($str, $from, $to = false)
     return $result;
 }
 
+ /**
+ * @author Altruista <http://strims.pl/u/altruista>
+ */  
 function find_one_between($str, $from, $to = false)
 {
     $result = find_between($str, $from, $to);
     return isset($result[0]) ? $result[0] : false;
 }
 
+ /**
+ * cURL
+ * @author Altruista <http://strims.pl/u/altruista>
+ */  
 class API_Curl
 {    
     public      $html;
@@ -145,21 +155,25 @@ class Strims extends API_Curl
 {
     /**
      * @var string domena strims
+     * @author Altruista <http://strims.pl/u/altruista>
      */
     private $_strims_domain = 'http://strims.pl/';
     
     /**
      * @var string token sesji. patrz get_token()
+     * @author Altruista <http://strims.pl/u/altruista>
      */    
     private $_token;
     
     /**
      * @var bool prawda jeśli jesteśmy zalogowani
+     * @author Altruista <http://strims.pl/u/altruista>
      */
     private $_logged_in;
     
     /**
      * Bazowa metoda wysyłająca zapytanie GET do serwera
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $url lokacja np. u/altruista
      * @return string html
      */
@@ -170,6 +184,7 @@ class Strims extends API_Curl
     
     /**
      * Bazowa metoda wysyłająca zapytanie POST do serwera
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $url lokacja np. u/altruista
      * @return string html
      */    
@@ -180,6 +195,7 @@ class Strims extends API_Curl
     
     /**
      * Zamienia krótką lokację (url) na pełny url (seo-friendly)
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $short_location krótka lokacja na strimsie np. t/abc123, 
      * @return string pełna lokacja na strimsie np. s/nazwa_strimu/t/abc123/tytul-tresci
      */
@@ -193,6 +209,7 @@ class Strims extends API_Curl
     
     /**
      * Pobiera tytul tresci z linku  krotkiego
+     * @author Simivar <http://strims.pl/u/simivar>
      * @param string $short_link krotka lokacja w strimsie, np. s/MariuszMaxKolonko/t/bslykt/
      * @return string zwraca tytul np. max-kolonko-polityczne-grzechy-obamy
     */
@@ -205,6 +222,7 @@ class Strims extends API_Curl
      * Pobiera token sesji. Token jest używany do tego,
      * aby nikt nie mógł spreprarować linka do UV/DV itd.
      * Wykop swego czasu miał ten problem - "samowykopujace sie znelzisko"
+     * @author Altruista <http://strims.pl/u/altruista>
      * @return string
      */
     public function get_token()
@@ -215,6 +233,7 @@ class Strims extends API_Curl
     
     /**
      * Logowanie do strims.pl
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $username Nazwa użytkownika
      * @param string $password Hasło uzytkownika
      * @return bool true jeśli udało się zalogować
@@ -238,7 +257,137 @@ class Strims extends API_Curl
     }
     
     /**
+     * Tworzy nowy strim
+     * @author Simivar <http://strims.pl/u/simivar>
+     * @param string $name Nazwa nowego strimu
+     * @param string $title Tytul nowego strimu
+     * @param int $privacy Prywatnosc strimu: 0 (publiczny) / 1 (polprywatny) / 2 (prywatny)
+     * @param string $desc OPTIONAL Opis strimu 
+     * @param string $sidebar OPTIONAL Sidebar strimu 
+     * @param int $nsfw OPTIONAL 1: tylko dla doroslych
+     * @param int $exposed OPTIONAL 1: pokazuj w strimie glownym
+     * @param int $media OPTIONAL 1: pokazuj miniaturki
+     * @param int $style OPTIONAL 1: uzywaj stylow 
+     * @return bool true jesli udalo sie utworzyc strim
+     */
+    public function create_strim($name, $title, $privacy, $desc = '', $sidebar = '', $nsfw = 0, $exposed = 1, $media = 1, $style = 1)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+         
+        $strim_postdata = Array(
+         'token'     => $this->_token,
+         'name'      => $name,
+         'title'     => $title,
+         'description' => $desc,
+         'sidebar' => $sidebar,
+         'privacy' => $privacy,
+         'nsfw' => $nsfw,
+         'exposed' => $exposed,
+         'media' => $media,
+         'style' => $style
+        );
+    
+         $this->post('strimy/dodaj', $strim_postdata);
+         $tmp = find_one_between($this->html, "page_template.section_name = '", "'");
+
+         if ($tmp != $name) {
+            return false;
+        }
+    	
+        return true;
+    }
+    
+    
+    /**
+     * Edycja opcji strimu
+     * @author Simivar <http://strims.pl/u/simivar>
+     * @required Prawa moderatora w danym strimie.
+     * @param string $strim Nazwa strimu w ktorym zmienic opcje.
+     * @param null|bool $nsfw Tylko dla doroslych, null jezeli nie 
+     * chcesz zmieniac tej opcji, 0 wylaczenie, 1 wlaczenie.
+     * @param null|bool $exposed Pokazuj w strimie glownym, null jezeli nie 
+     * chcesz zmieniac tej opcji, 0 wylaczenie, 1 wlaczenie.
+     * @param null|bool $media Pokazuj miniatury, null jezeli nie 
+     * chcesz zmieniac tej opcji, 0 wylaczenie, 1 wlaczenie.
+     * @param null|bool $style Uzywanie styli, null jezeli nie 
+     * chcesz zmieniac tej opcji, 0 wylaczenie, 1 wlaczenie.
+     * @return null
+     */
+    public function edit_strim_options( $strim, $nsfw  = NULL, $exposed  = NULL, $media  = NULL, $style  = NULL )
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $this->get( 's/' . $strim . '/ustawienia' );
+        
+        /* Sprawdzamy czy uzytkownik chce zmienic dana opcje, jezeli nie - pobieramy stara wartosc */
+        if( !is_null( $nsfw ) )
+    	    $postdata['nsfw'] = $nsfw;
+	    else {
+            $nsfw_state = find_one_between( $this->html, '<input type="checkbox" id="input_nsfw" name="nsfw" value="1" class="input_checkbox"', ' />' );
+            if( $nsfw_state === FALSE ) ? $postdata['nsfw'] = 0 : $postdata['nsfw'] = 1;
+	    }
+        
+        if( !is_null( $exposed ) )
+            $postdata['exposed'] = $exposed;
+        else {
+            $exposed_state = find_one_between( $this->html, '<input type="checkbox" id="input_main" name="exposed" value="1" class="input_checkbox"', ' />' );
+            if( $exposed_state === FALSE ) ? $postdata['exposed']  = 0 : $postdata['exposed']  = 1;
+        }
+    
+        if( !is_null( $media ) )
+            $postdata['media'] = $media;
+        else {
+            $media_state = find_one_between( $this->html, '<input type="checkbox" id="input_media" name="media" value="1" class="input_checkbox"', ' />' );
+            if( $media_state === FALSE ) ? $postdata['media'] = 0 : $postdata['media'] = 1;
+        }
+    
+        if( !is_null( $style ) )
+            $postdata['style'] = $style;
+        else {
+            $style_state = find_one_between( $this->html, '<input type="checkbox" id="input_style" name="style" value="1" class="input_checkbox"', ' />' );
+            if( $style_state === FALSE ) ? $postdata['style'] = 0 : $postdata['style'] = 1;
+        }
+    
+        $postdata['token'] = $this->_token;
+        $this->post('s/'.$strim.'/ustawienia', $postdata, true);
+    }
+    
+    
+    /**
+     * Edycja tekstowych ustawien strimu
+     * @author Simivar <http://strims.pl/u/simivar>
+     * @required Prawa moderatora w danym strimie.
+     * @param string $title Tytul strimu, null dla braku zmian
+     * @param string $desc Opis strimu, null dla braku zmian
+     * @param string $sidebar Sidebar strimu, null dla braku zmian
+     * @return null
+     */
+     public function edit_strim_text( $strim, $title = NULL, $desc = NULL, $sidebar = NULL )
+     {
+     	if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $this->get( 's/' . $strim . '/ustawienia' );
+    
+        if( !is_null( $title ) )
+            $postdata['title'] = $title;
+            
+        if( !is_null( $desc ) )
+            $postdata['description'] = $desc;
+    
+        if( !is_null( $sidebar ) )
+            $postdata['sidebar'] = $sidebar;
+	 
+        $postdata['token'] = $this->_token;
+        $this->post('s/'.$strim.'/ustawienia', $postdata, true);
+    }
+    
+    /**
      * Pobieranie wpisów
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param bool|string $strim skad wpisy np. "s/Ciekawostki", "u/Uzytkownik" lub false jeśli główne wpisy
      * @param int $page numer strony zaczynajać od 1
      * @return array Tablica z wynikami
@@ -268,6 +417,7 @@ class Strims extends API_Curl
     
     /**
      * Dodawanie wpisu
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param bool|string $strim dokad wpis np. "Ciekawostki" lub false jeśli do głównego 
      * @param string $content Treść wpisu
      * @return object odpowiedź ajax ze strimsa
@@ -289,6 +439,7 @@ class Strims extends API_Curl
     
     /**
      * Dodawanie odpowiedzi do wpisu
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $entry_id id wpisu np. 'fgsd234'
      * @param string $content Treść wpisu (odpowiedzi)
      * @return object odpowiedź ajax ze strimsa
@@ -309,6 +460,7 @@ class Strims extends API_Curl
     
     /**
      * Dodawanie treści (link)
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $strim dokad wpis np. "Ciekawostki"
      * @param string $title tytuł
      * @param string $url url odnośnika
@@ -344,6 +496,7 @@ class Strims extends API_Curl
     
      /**
       * Dodawanie treści (text)
+      * @author Simivar <http://strims.pl/u/simivar>
       * @param string $strim dokad wpis np. "Ciekawostki"
       * @param string $title tytuł
       * @param string $content zawartosc wpisu
@@ -379,6 +532,8 @@ class Strims extends API_Curl
     
      /**
      * Dodaje etykiete do tresci
+     * @author Simivar <http://strims.pl/u/simivar>
+     * @required Prawa moderatora / bycie autorem tresci
      * @param string $strim dokad etykieta np. "Ciekawostki"
      * @param string $link_id id linku np. 'bslykt'
      * @param int $label_id id etykiety np. 544
@@ -415,6 +570,8 @@ class Strims extends API_Curl
     
      /**
      * Tworzy etykiete w strimie
+     * @author Simivar <http://strims.pl/u/simivar>
+     * @required Prawa moderatora w strimie
      * @param string $strim dokad etykieta np. "Ciekawostki"
      * @param string $name nazwa etykiety
      * @param string $css_class klasa css etykiety
@@ -451,6 +608,7 @@ class Strims extends API_Curl
     
     /**
      * Dodaje link do powiązanych
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $link_id id linku np. 'ffa523'
      * @param string $title tytuł
      * @param string $url url linku
@@ -477,9 +635,102 @@ class Strims extends API_Curl
         
         $this->post($add_related_link_location, $related_postdata);        
     }
-
+    
+    /**
+     * Zatwierdzanie tresci/komentarza/wpisu w strimie
+     * @author Simivar <http://strims.pl/u/simivar>
+     * @required Prawa moderatora w strimie
+     * @param string $content id tresci/komentarza/wpisu "t/lnnjb9" lub "k/j1ye65"
+     * @return object odpowiedź ze strimsa
+     */
+    public function approve($content)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $result = $this->get('ajax/'.$content.'/zatwierdz?token='.$this->_token);
+        return json_decode($result);
+    }
+    
+    /**
+     * Usuwanie tresci/komentarza/wpisu w strimie
+     * @author Simivar <http://strims.pl/u/simivar>
+     * @required Prawa moderatora w strimie
+     * @param string $content id tresci/komentarza/wpisu "t/lnnjb9" lub "k/j1ye65"
+     * @return object odpowiedź ze strimsa
+     */
+    public function remove($content)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $result = $this->get('ajax/'.$content.'/moderuj?token='.$this->_token);
+        return json_decode($result);
+    }
+    
+    /**
+     * Subskrybuje strim
+     * @author Simivar <http://strims.pl/u/simivar>
+     * @param string $strim Nazwa strimu
+     * @return object odpowiedź ze strimsa
+     */
+    public function subscribe($strim)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $result = $this->get('ajax/s/'.$strim.'/subskrybuj?token='.$this->_token);
+        return json_decode($result);
+    }
+    
+    /**
+     * Odsubskrybuje strim
+     * @author Simivar <http://strims.pl/u/simivar>
+     * @param string $strim Nazwa strimu
+     * @return object odpowiedź ze strimsa
+     */
+    public function unsubscribe($strim)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $result = $this->get('ajax/s/'.$strim.'/niesubskrybuj?token='.$this->_token);
+        return json_decode($result);
+    }
+    
+    /**
+     * Blokuje strim
+     * @author Simivar <http://strims.pl/u/simivar>
+     * @param string $strim Nazwa strimu
+     * @return object odpowiedź ze strimsa
+     */
+    public function block($strim)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $result = $this->get('ajax/s/'.$strim.'/zablokuj?token='.$this->_token);
+        return json_decode($result);
+    }
+    
+    /**
+     * Odblokowuje strim
+     * @author Simivar <http://strims.pl/u/simivar>
+     * @param string $strim Nazwa strimu
+     * @return object odpowiedź ze strimsa
+     */
+    public function unblock($strim)
+    {
+        if (!$this->_logged_in) {
+            throw new Exception("Musisz byc zalogowany!");
+        }
+        $result = $this->get('ajax/s/'.$strim.'/odblokuj?token='.$this->_token);
+        return json_decode($result);
+    }
+    
     /**
      * UV wpisu/treści np. 'w/9mv3db' lub 't/523fag'
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $content id wpisu
      * @return object odpowiedź ze strimsa
      */
@@ -494,6 +745,7 @@ class Strims extends API_Curl
 
     /**
      * DV wpisu/treści np. 'w/9mv3db' lub 't/523fag'
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $content id wpisu
      * @return object odpowiedź ze strimsa
      */
@@ -508,6 +760,7 @@ class Strims extends API_Curl
     
     /**
      * UV wpisu np. '9mv3db'
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $entry_id id wpisu
      * @return object odpowiedź ze strimsa
      */
@@ -518,6 +771,7 @@ class Strims extends API_Curl
 
     /**
      * DV wpisu np. '9mv3db'
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $entry_id id wpisu
      * @return object odpowiedź ze strimsa
      */
@@ -528,6 +782,7 @@ class Strims extends API_Curl
 
     /**
      * UV treści np. '9mv3db'
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $link_id id wpisu
      * @return object odpowiedź ze strimsa
      */
@@ -538,6 +793,7 @@ class Strims extends API_Curl
 
     /**
      * DV treści np. '9mv3db'
+     * @author Altruista <http://strims.pl/u/altruista>
      * @param string $link_id id wpisu
      * @return object odpowiedź ze strimsa
      */
