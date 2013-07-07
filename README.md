@@ -6,6 +6,15 @@
 - dodawanie treści (tekst)
 - dodawanie powiązanych linków
 - dodawanie wpisów
+- tworzenie strimu
+- edycję ustawień strimu
+- edycję opisu strimu (dla moderatorów)
+- zatwierdzenie treści w strimie (dla moderatorów)
+- usuwanie treści ze strimu (dla moderatorów)
+- subskrybowanie strimu
+- anulowanie subskrybcji strimu
+- blokowanie strimu
+- odblokowywanie strimu
 - głosowanie (wpisy / treści)
 - zamianę krótkich linków na pelne
 - dodawianie etykiet
