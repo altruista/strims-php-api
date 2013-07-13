@@ -365,7 +365,7 @@ class Strims extends API_Curl
      * @param string $sidebar Sidebar strimu, null dla braku zmian
      * @return null
      */
-     public function edit_strim_text( $strim, $title = NULL, $desc = NULL, $sidebar = NULL )
+    public function edit_strim_text( $strim, $title = NULL, $desc = NULL, $sidebar = NULL )
      {
      	if (!$this->_logged_in) {
             throw new Exception("Musisz byc zalogowany!");
@@ -413,6 +413,43 @@ class Strims extends API_Curl
             $entries[] = $entry;
         }
         return $entries;
+    }
+    
+    /**
+     * Pobieranie treści ze strimu
+     * @author Altruista <http://strims.pl/u/altruista> 
+     * @param string $strim nazwa strimu np. "s/Ciekawostki", "s/Ciekawostki/najnowsze"
+     * @param int $page numer strony
+     * @return array tablica z wynikami
+     */
+    public function get_listings($strim, $page = 1)
+    {
+        $this->get($strim . ($page == 1 ? "" : "?strona={$page}"));
+        
+        $tmp = find_between($this->html, '<div class="content level_0', '<ul class="content_info_actions');
+        
+        $listings = Array();
+        foreach ($tmp as $content) {
+            $title = find_one_between($content, '<a class="content_title', '>');
+            
+            $listing = (Object) Array(
+                'title'         => find_one_between($content, 'title="', '"'),
+                'thumb'         => find_one_between($content, '<img src="', '"'),
+                'id'            => find_one_between($content, 'ref="/ajax/t/', '/lubi'),                
+                'link'          => find_one_between($title, 'href="', '"')                
+            );         
+            
+            /* TODO: FIXME: w zależności od tego czy jesteśmy zalogowani i mamy w ustawieniach
+             * włączone ramki te wyniki będa się różnić. tr */                
+            $listing->external_url = $listing->link;
+            $listing->frame_url = $listing->link;
+            
+            $listing->strims_short_url = "http://strims.pl/t/{$listing->link}";
+            //$listing->strims_full_url = null; /* TODO, na pewnoe nie ma sensu używać get_full_location() */            
+            
+            $listings[] = $listing;
+        }
+        return $listings;
     }
     
     /**

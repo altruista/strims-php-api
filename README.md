@@ -1,7 +1,8 @@
-## Nieoficjalne PHP API dla Strims.pl via cURL v1.05b
+## Nieoficjalne PHP API dla Strims.pl via cURL v1.07
 
 #### API pozwala na:
 - pobieranie wpisów
+- poberanie treści
 - dodawanie treści (link)
 - dodawanie treści (tekst)
 - dodawanie powiązanych linków
