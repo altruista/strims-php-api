@@ -323,32 +323,32 @@ class Strims extends API_Curl
         $this->get( 's/' . $strim . '/ustawienia' );
         
         /* Sprawdzamy czy uzytkownik chce zmienic dana opcje, jezeli nie - pobieramy stara wartosc */
-        if( !is_null( $nsfw ) )
-    	    $postdata['nsfw'] = $nsfw;
-	    else {
-            $nsfw_state = find_one_between( $this->html, '<input type="checkbox" id="input_nsfw" name="nsfw" value="1" class="input_checkbox"', ' />' );
-            if( $nsfw_state === FALSE ) ? $postdata['nsfw'] = 0 : $postdata['nsfw'] = 1;
-	    }
+        if (!is_null($nsfw))
+            $postdata['nsfw'] = $nsfw;
+        else {
+            $nsfw_state = find_one_between($this->html, '<input type="checkbox" id="input_nsfw" name="nsfw" value="1" class="input_checkbox"', ' />');
+            $postdata['nsfw'] = ($nsfw_state === FALSE) ? 1 : 0;
+        }
         
         if( !is_null( $exposed ) )
             $postdata['exposed'] = $exposed;
         else {
             $exposed_state = find_one_between( $this->html, '<input type="checkbox" id="input_main" name="exposed" value="1" class="input_checkbox"', ' />' );
-            if( $exposed_state === FALSE ) ? $postdata['exposed']  = 0 : $postdata['exposed']  = 1;
+            $postdata['exposed'] = ($exposed_state === FALSE) ? 1 : 0;            
         }
     
         if( !is_null( $media ) )
             $postdata['media'] = $media;
         else {
             $media_state = find_one_between( $this->html, '<input type="checkbox" id="input_media" name="media" value="1" class="input_checkbox"', ' />' );
-            if( $media_state === FALSE ) ? $postdata['media'] = 0 : $postdata['media'] = 1;
+            $postdata['media'] = ($media_state === FALSE) ? 1 : 0;                        
         }
     
         if( !is_null( $style ) )
             $postdata['style'] = $style;
         else {
             $style_state = find_one_between( $this->html, '<input type="checkbox" id="input_style" name="style" value="1" class="input_checkbox"', ' />' );
-            if( $style_state === FALSE ) ? $postdata['style'] = 0 : $postdata['style'] = 1;
+            $postdata['style'] = ($style_state === FALSE) ? 1 : 0;                        
         }
     
         $postdata['token'] = $this->_token;
