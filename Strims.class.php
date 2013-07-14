@@ -44,8 +44,15 @@ class API_Curl
         'user_agent' => 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1'
     );
     
-    public function __construct()
+    
+    /**
+     * Konstruktor api
+     * @param array $config ustawienia. można określić położenie pliku cookie
+     * @throws Exception
+     */
+    public function __construct($config = Array())
     {
+        $this->_config = array_merge($this->_config, $config);
         if (!is_writeable($this->_config['cookie_file'])) {
             throw new Exception("Plik {$this->_config['cookie_file']} nie ma uprawnien do zapisu!");
         }
