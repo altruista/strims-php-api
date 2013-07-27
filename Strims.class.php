@@ -54,7 +54,13 @@ class API_Curl
     {
         $this->_config = array_merge($this->_config, $config);
         if (!is_writeable($this->_config['cookie_file'])) {
-            throw new Exception("Plik {$this->_config['cookie_file']} nie ma uprawnien do zapisu!");
+            // plik nie jest do zapisu. próbujemy go utworzyć
+            @file_put_contents($this->_config['cookie_file'], '');
+            
+            // czy plik dalej jest nie do zapisu?
+            if (!is_writeable($this->_config['cookie_file'])) {
+                throw new Exception("Plik {$this->_config['cookie_file']} nie ma uprawnien do zapisu!");
+            }
         }
     }
     
@@ -457,6 +463,30 @@ class Strims extends API_Curl
             $listings[] = $listing;
         }
         return $listings;
+    }
+    
+    /**
+     * Pobieranie właściwości strimu
+     * @todo na razie to tylko sprawdza czy strim istnieje
+     * @author Altruista <http://strims.pl/u/altruista>
+     * @param string $strim nazwa strimu np. "Ciekawostki"
+     * @return boolean|object FALSE jeśli strim nie istnieje, obiekt z właściwościami jeśli istnieje
+     */
+    public function get_strim_details($strim)
+    {
+        $url = "s/{$strim}";
+        $full_url = $this->_strims_domain . $url;
+        $html = $this->get($url);
+        
+        // czy nastąpiło przekierowanie do http://strims.pl/strimy?szukaj=abcde
+        if($this->last_url !== $full_url) {
+            return FALSE;            
+        }
+        
+        return (Object) Array(
+            'exists'    => 1,
+            'link'      => $full_url
+        );
     }
     
     /**

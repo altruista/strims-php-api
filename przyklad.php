@@ -2,7 +2,9 @@
 
 require_once "Strims.class.php";
 
-$strims = new Strims();
+$strims = new Strims(array(
+    'cookie_file' => '/tmp/strims_cookie.txt'
+));
 
 $entries = $strims->get_entries('u/altruista');
 
