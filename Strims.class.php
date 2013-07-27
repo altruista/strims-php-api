@@ -264,7 +264,10 @@ class Strims extends API_Curl
         $result = stripos($this->html, 'wyloguj') !== false;
         if ($result) {
             $this->_logged_in = true;
-            $this->_token = $token;
+            // $this->_token = $token;
+            // zdaje się że po logowaniu czasem (?) token się zmienia.
+            // dlatego po zalogowaniu wejdziemy na strims.pl i ściągniemy najnowszy token
+            $this->_token = $this->get_token();
         }
         return $result;
     }
